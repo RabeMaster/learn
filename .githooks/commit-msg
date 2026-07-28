@@ -1,0 +1,23 @@
+#!/bin/sh
+# 커밋 규칙:
+#  1) Co-Authored-By(공동작성자) 금지
+#  2) 제목은 "type(scope): 설명" 형식 (merge 커밋은 예외)
+msg_file="$1"
+[ -f "$msg_file" ] || exit 0
+
+if grep -qi 'co-authored-by:' "$msg_file"; then
+  echo "commit-msg: Co-Authored-By 금지" >&2
+  exit 1
+fi
+
+subject=$(head -n1 "$msg_file")
+case "$subject" in
+  "Merge "*) exit 0 ;;
+esac
+
+if ! printf '%s\n' "$subject" | grep -qE '^(feat|fix|docs|refactor|style|test|chore)(\([a-z0-9_-]+\))?: .+'; then
+  echo "commit-msg: 제목은 'type(scope): 설명' 형식이어야 합니다 (예: feat(java): add print example)" >&2
+  echo "  type = feat, fix, docs, refactor, style, test, chore" >&2
+  exit 1
+fi
+exit 0
