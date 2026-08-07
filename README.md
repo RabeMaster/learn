@@ -20,3 +20,4 @@ git config core.hooksPath .githooks
 | 날짜 | 모델 |
 | --- | --- |
 | 2026-07-29 | Claude Opus 4.8 (1M context) |
+| 2026-08-08 | Claude Opus 5 (1M context) |
