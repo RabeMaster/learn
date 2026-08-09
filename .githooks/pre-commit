@@ -1,0 +1,38 @@
+#!/bin/sh
+# 커밋되는 .md 파일의 표기 규칙 검사
+#  1) 닫는 ** 바로 앞이 닫는 괄호이고 바로 뒤가 일반 문자면
+#     GitHub이 별표를 그대로 노출한다 (티스토리와 Obsidian에서는 안 보임)
+#  2) 화살표는 ->, 대시는 - 로 쓰고, 나열은 쉼표로 한다
+# 인라인 코드(백틱 안)는 검사에서 제외한다.
+
+files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.md$')
+[ -z "$files" ] && exit 0
+
+fail=0
+
+for f in $files; do
+  [ -f "$f" ] || continue
+  stripped=$(sed 's/`[^`]*`//g' "$f")
+
+  hits=$(printf '%s\n' "$stripped" | grep -nE '[)]\*\*[^[:space:][:punct:]]')
+  if [ -n "$hits" ]; then
+    echo "pre-commit: $f - 닫는 ** 앞이 괄호라 GitHub에서 별표가 노출됩니다" >&2
+    printf '%s\n' "$hits" >&2
+    echo "  고치기: 괄호를 강조 밖으로 빼세요" >&2
+    fail=1
+  fi
+
+  hits=$(printf '%s\n' "$stripped" | grep -n '→\|←\|⇒\|—\|–\|·')
+  if [ -n "$hits" ]; then
+    echo "pre-commit: $f - 화살표는 -> , 대시는 - , 나열은 쉼표로 쓰세요" >&2
+    printf '%s\n' "$hits" >&2
+    fail=1
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo "pre-commit: 위 항목을 고치고 다시 커밋하세요." >&2
+  exit 1
+fi
+
+exit 0
