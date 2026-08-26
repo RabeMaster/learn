@@ -35,6 +35,11 @@ source /repo/001_db/sql/002_격리수준/00_setup.sql
 | `00_reset.sql` | 데이터만 처음 상태로. 시나리오 하나 끝날 때마다 | 둘 다 |
 | `01_dirty_read.sql` | Dirty Read, 그리고 PostgreSQL에서 왜 재현되지 않는지 | `accounts` |
 | `02_non_repeatable_read.sql` | Non-Repeatable Read | `accounts` |
+| `03_phantom_read.sql` | Phantom Read, PostgreSQL의 `REPEATABLE READ`가 이것도 막는다는 것 | `accounts` |
+| `04_lost_update.sql` | Lost Update, 출금 7만 원이 증발하는 과정 | `accounts` |
+| `05_lost_update_repeatable_read.sql` | 격리 수준을 올리면 잔액이 맞는 게 아니라 에러가 난다는 것 | `accounts` |
+| `06_single_statement.sql` | 한 문장으로 쓰면 기본 격리 수준에서도 안 틀린다는 것 | `accounts` |
+| `07_write_skew.sql` | `REPEATABLE READ`가 못 막고 `SERIALIZABLE`만 막는 경우 | `doctors` |
 
 `01`부터 순서대로 돌리면 글의 흐름과 맞습니다.
 
@@ -47,3 +52,6 @@ source /repo/001_db/sql/002_격리수준/00_setup.sql
 | | PostgreSQL 16 | MySQL 8.0 |
 | --- | --- | --- |
 | `READ UNCOMMITTED`에서 커밋 안 된 값 읽기 | `100000` (안 읽힘) | `0` (읽힘) |
+| `REPEATABLE READ`에서 Phantom Read | 막음 | 막음 |
+| `REPEATABLE READ`에서 Lost Update | 에러를 던짐 | 에러 없이 덮어씀 |
+| `balance = balance - 70000` 동시 실행 | `-20000` (정확) | `-20000` (정확) |
